@@ -50,17 +50,17 @@ namespace HotbarPlus.Patches
 			defaultItemIconSize = __instance.itemSlotIcons[0].rectTransform.sizeDelta;
             defaultItemSlotPosY = __instance.itemSlotIconFrames[0].rectTransform.anchoredPosition.y;
 
-            if (ConfigSettings.centerInventoryUIFix.Value)
+            /*if (ConfigSettings.centerInventoryUIFix.Value)
 			{
 				var rectTransform = __instance.Inventory?.canvasGroup?.transform as RectTransform;
 				if (rectTransform != null)
 				{
-					rectTransform.pivot = new Vector2(0.5f, 0.5f);
-					rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-					rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+					rectTransform.pivot = new Vector2(0.5f, rectTransform.pivot.y);
+					rectTransform.anchorMin = new Vector2(0.5f, rectTransform.anchorMin.y);
+					rectTransform.anchorMax = new Vector2(0.5f, rectTransform.anchorMax.y);
 					rectTransform.anchoredPosition3D = new Vector3(0, rectTransform.anchoredPosition3D.y, rectTransform.anchoredPosition3D.z);
 				}
-			}
+			}*/
 		}
 
 
@@ -69,8 +69,8 @@ namespace HotbarPlus.Patches
 			List<Image> itemSlotIconFrames = new List<Image>(HUDManager.Instance.itemSlotIconFrames);
 			List<Image> itemSlotIcons = new List<Image>(HUDManager.Instance.itemSlotIcons);
 
-            float uiSpacing = (hotbarSlotSize + ConfigSettings.overrideHotbarSpacing.Value) * ConfigSettings.overrideHotbarHudSize.Value;
-			float yPos = defaultItemSlotPosY + 36 * ((ConfigSettings.overrideHotbarHudSize.Value - 1) / 2f);
+            float uiSpacing = (hotbarSlotSize + ConfigSettings.overrideHotbarSpacingConfig.Value) * ConfigSettings.overrideHotbarHudSizeConfig.Value;
+			float yPos = defaultItemSlotPosY + 36 * ((ConfigSettings.overrideHotbarHudSizeConfig.Value - 1) / 2f);
 
             Vector3 iconFrameRotation = itemSlotIconFrames[0].rectTransform.eulerAngles;
 			Vector3 iconRotation = itemSlotIcons[0].rectTransform.eulerAngles;
@@ -78,21 +78,27 @@ namespace HotbarPlus.Patches
 			mainItemSlotFrames.Clear();
 			mainItemSlotIcons.Clear();
 
-			for (int i = 0; i < Mathf.Max(SyncManager.hotbarSize, mainHotbarSize); i++)
+            for (int i = 0; i < Mathf.Max(SyncManager.currentHotbarSize, mainHotbarSize); i++)
 			{
-				if (i >= SyncManager.hotbarSize)
+				if (i >= SyncManager.currentHotbarSize)
 				{
-					GameObject.Destroy(itemSlotIconFrames[SyncManager.hotbarSize]);
-					GameObject.Destroy(itemSlotIcons[SyncManager.hotbarSize]);
-					itemSlotIconFrames.RemoveAt(SyncManager.hotbarSize);
-					itemSlotIcons.RemoveAt(SyncManager.hotbarSize);
+					GameObject.Destroy(itemSlotIconFrames[SyncManager.currentHotbarSize]);
+					GameObject.Destroy(itemSlotIcons[SyncManager.currentHotbarSize]);
+					itemSlotIconFrames.RemoveAt(SyncManager.currentHotbarSize);
+					itemSlotIcons.RemoveAt(SyncManager.currentHotbarSize);
 					continue;
 				}
 				if (i >= mainHotbarSize)
 				{
-					itemSlotIconFrames.Insert(i, Image.Instantiate(itemSlotIconFrames[0], itemSlotIconFrames[0].transform.parent));
+					Image itemSlotFrame = Image.Instantiate(itemSlotIconFrames[0], itemSlotIconFrames[0].transform.parent);
+
+                    itemSlotIconFrames.Insert(i, itemSlotFrame);
 					itemSlotIconFrames[i].transform.SetSiblingIndex(itemSlotIconFrames[i - 1].transform.GetSiblingIndex() + 1);
-					itemSlotIcons.Insert(i, itemSlotIconFrames[i].transform.GetChild(0).GetComponent<Image>());
+
+					Image itemIcon = itemSlotIconFrames[i].transform.GetChild(0).GetComponent<Image>();
+					itemIcon.sprite = null;
+					itemIcon.enabled = false;
+                    itemSlotIcons.Insert(i, itemIcon);
 
 					itemSlotIconFrames[i].fillMethod = itemSlotIconFrames[0].fillMethod;
 					itemSlotIconFrames[i].sprite = itemSlotIconFrames[0].sprite;
@@ -112,7 +118,7 @@ namespace HotbarPlus.Patches
 				itemSlotIcons[i].rectTransform.eulerAngles = iconRotation;
 			}
 
-			mainHotbarSize = SyncManager.hotbarSize;
+			mainHotbarSize = SyncManager.currentHotbarSize;
 			HUDManager.Instance.itemSlotIconFrames = itemSlotIconFrames.ToArray();
 			HUDManager.Instance.itemSlotIcons = itemSlotIcons.ToArray();
 
@@ -125,23 +131,23 @@ namespace HotbarPlus.Patches
 			var itemSlotIconFrames = HUDManager.Instance.itemSlotIconFrames;
 			var itemSlotIcons = HUDManager.Instance.itemSlotIcons;
 
-			float uiSpacing = (hotbarSlotSize + ConfigSettings.overrideHotbarSpacing.Value) * ConfigSettings.overrideHotbarHudSize.Value;
-			float yPos = defaultItemSlotPosY + 36 * ((ConfigSettings.overrideHotbarHudSize.Value - 1) / 2f);
+			float uiSpacing = (hotbarSlotSize + ConfigSettings.overrideHotbarSpacingConfig.Value) * ConfigSettings.overrideHotbarHudSizeConfig.Value;
+			float yPos = defaultItemSlotPosY + 36 * ((ConfigSettings.overrideHotbarHudSizeConfig.Value - 1) / 2f);
 
 			// Recenter
-			float totalWidth = uiSpacing * (SyncManager.hotbarSize - 1);
+			float totalWidth = uiSpacing * (mainHotbarSize - 1);
 			float offset = totalWidth / 2f;
 
-			for (int i = 0; i < SyncManager.hotbarSize; i++)
+			for (int i = 0; i < mainHotbarSize; i++)
 			{
 				float newXPos = (i * uiSpacing) - offset;
 				itemSlotIconFrames[i].rectTransform.anchoredPosition = new Vector2(newXPos, yPos);
-				itemSlotIconFrames[i].rectTransform.sizeDelta = defaultItemFrameSize * ConfigSettings.overrideHotbarHudSize.Value;
-				itemSlotIcons[i].rectTransform.sizeDelta = defaultItemIconSize * ConfigSettings.overrideHotbarHudSize.Value;
+				itemSlotIconFrames[i].rectTransform.sizeDelta = defaultItemFrameSize * ConfigSettings.overrideHotbarHudSizeConfig.Value;
+				itemSlotIcons[i].rectTransform.sizeDelta = defaultItemIconSize * ConfigSettings.overrideHotbarHudSizeConfig.Value;
 			}
 
-			currentOverrideHotbarSpacing = ConfigSettings.overrideHotbarSpacing.Value;
-			currentOverrideHotbarHudScale = ConfigSettings.overrideHotbarHudSize.Value;
+			currentOverrideHotbarSpacing = ConfigSettings.overrideHotbarSpacingConfig.Value;
+			currentOverrideHotbarHudScale = ConfigSettings.overrideHotbarHudSizeConfig.Value;
 		}
 
 
@@ -158,7 +164,7 @@ namespace HotbarPlus.Patches
 					endAlpha = 1.0f;
 				else
 				{
-					endAlpha = Mathf.Clamp(ConfigSettings.overrideFadeHudAlpha.Value, 0, 1);
+					endAlpha = Mathf.Clamp(ConfigSettings.overrideFadeHudAlphaConfig.Value, 0, 1);
 					if (startAlpha == 0.13f)
 						startAlpha = endAlpha;
 				}
@@ -170,7 +176,7 @@ namespace HotbarPlus.Patches
         [HarmonyPrefix]
         public static void OnCloseQuickMenu()
         {
-            if (ReservedItemSlots_Compat.Enabled || ConfigSettings.overrideHotbarHudSize.Value != currentOverrideHotbarHudScale || ConfigSettings.overrideHotbarSpacing.Value != currentOverrideHotbarSpacing)
+            if (ReservedItemSlots_Compat.Enabled || ConfigSettings.overrideHotbarHudSizeConfig.Value != currentOverrideHotbarHudScale || ConfigSettings.overrideHotbarSpacingConfig.Value != currentOverrideHotbarSpacing)
                 ResizeHotbarSlotsHUD();
         }
     }

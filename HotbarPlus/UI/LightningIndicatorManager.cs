@@ -21,7 +21,7 @@ namespace HotbarPlus.UI
 
         [HarmonyPatch(typeof(StormyWeather), "OnDisable")]
         [HarmonyPrefix]
-        private static void OnStopStorm(StormyWeather __instance)
+        private static void OnStopStorm()
         {
             if (currentWarningIcon)
                 ClearCurrentWarningIcon();
@@ -30,9 +30,9 @@ namespace HotbarPlus.UI
 
         [HarmonyPatch(typeof(StormyWeather), "Update")]
         [HarmonyPostfix]
-        private static void Update(StormyWeather __instance)
+        private static void Update()
         {
-            if (currentMetalObject && !ConfigSettings.disableItemStaticWarnings.Value)
+            if (currentMetalObject && !ConfigSettings.disableItemStaticWarningsConfig.Value)
             {
                 if (Time.time - updateTime > 0.1f)
                 {

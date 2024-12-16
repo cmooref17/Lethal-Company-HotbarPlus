@@ -31,5 +31,11 @@ namespace HotbarPlus.Input
 
         [InputAction("<Keyboard>/6", Name = "[HB+] Quick Slot 6")]
         public InputAction QuickHotbarSlotHotkey6 { get; set; }
+
+        [InputAction("<Keyboard>/7", Name = "[HB+] Quick Slot 7")]
+        public InputAction QuickHotbarSlotHotkey7 { get; set; }
+
+        [InputAction("<Keyboard>/8", Name = "[HB+] Quick Slot 8")]
+        public InputAction QuickHotbarSlotHotkey8 { get; set; }
     }
 }

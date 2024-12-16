@@ -37,6 +37,10 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Flip\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
@@ -116,9 +120,11 @@
     <Compile Include="Patches\HUDPatcher.cs" />
     <Compile Include="Patches\PlayerPatcher.cs" />
     <Compile Include="Patches\QuickDrop.cs" />
+    <Compile Include="Patches\TerminalPatcher.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaveManager.cs" />
     <Compile Include="UI\EnergyBarData.cs" />
     <Compile Include="UI\EnergyBarManager.cs" />
     <Compile Include="UI\LightningIndicatorManager.cs" />
@@ -136,4 +142,7 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(TargetDir)$(TargetName).dll" "C:\Users\cmoor\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Flip\BepInEx\plugins\FlipMods-HotbarPlus\plugins\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

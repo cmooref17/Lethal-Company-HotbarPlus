@@ -6,6 +6,6 @@ namespace HotbarPlus
 	{
 		public const string PLUGIN_GUID = "FlipMods.HotbarPlus";
 		public const string PLUGIN_NAME = "HotbarPlus";
-		public const string PLUGIN_VERSION = "1.7.4";
+		public const string PLUGIN_VERSION = "1.8.0";
 	}
 }

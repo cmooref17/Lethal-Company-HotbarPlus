@@ -105,7 +105,7 @@ namespace HotbarPlus.UI
                 energyBarData.rectTransform.anchoredPosition3D = new Vector3(-4f * energyBarScale, 0, 0);
                 energyBarData.transform.localEulerAngles = new Vector3(0, 0, 90);
 
-                if (ConfigSettings.disableEnergyBars.Value || !item || !item.itemProperties.requiresBattery || item.insertedBattery == null || (ReservedItemSlots_Compat.Enabled && itemSlotFrame.name.ToLower().Contains("reserved") && ReservedItemSlots_Compat.ShouldDisableEnergyBarsReservedItemSlots()))
+                if (ConfigSettings.disableEnergyBarsConfig.Value || !item || !item.itemProperties.requiresBattery || item.insertedBattery == null || (ReservedItemSlots_Compat.Enabled && itemSlotFrame.name.ToLower().Contains("reserved") && ReservedItemSlots_Compat.ShouldDisableEnergyBarsReservedItemSlots()))
                 {
                     if (energyBarData.gameObject.activeSelf)
                         energyBarData.gameObject.SetActive(false);

@@ -20,16 +20,27 @@ namespace HotbarPlus.Patches
 	{
 		static PlayerControllerB localPlayerController { get { return StartOfRound.Instance?.localPlayerController; } }
 		public static int vanillaHotbarSize = -1;
-		public static int postInitialHotbarSize = -1;
-		public static int newHotbarSize = -1;
+		public static int mainHotbarSize = -1;
 
 
-		[HarmonyPatch(typeof(PlayerControllerB), "Awake")]
+        [HarmonyPatch(typeof(StartOfRound), "Awake")]
+        [HarmonyPostfix]
+        private static void ResetValues(StartOfRound __instance)
+		{
+			vanillaHotbarSize = -1;
+            mainHotbarSize = vanillaHotbarSize;
+        }
+
+
+        [HarmonyPatch(typeof(PlayerControllerB), "Awake")]
 		[HarmonyPostfix]
 		public static void GetInitialHotbarSize(PlayerControllerB __instance)
 		{
 			if (vanillaHotbarSize == -1)
+			{
 				vanillaHotbarSize = __instance.ItemSlots.Length;
+				mainHotbarSize = vanillaHotbarSize;
+			}
 		}
 
 
@@ -44,11 +55,39 @@ namespace HotbarPlus.Patches
 
 		public static void ResizeInventory()
 		{
-			postInitialHotbarSize = localPlayerController.ItemSlots.Length;
-            newHotbarSize = Mathf.Max(SyncManager.hotbarSize + (postInitialHotbarSize - vanillaHotbarSize), 0);
-			Plugin.LogWarning("Resizing inventory to: " + newHotbarSize + ". Previous: " + postInitialHotbarSize);
+			int dHotbarSize = SyncManager.currentHotbarSize - mainHotbarSize;
+
+			if (dHotbarSize == 0)
+                return;
+
+			Plugin.LogWarning("Resizing main hotbar to: " + SyncManager.currentHotbarSize + ". Previous: " + mainHotbarSize);
             foreach (var playerController in StartOfRound.Instance.allPlayerScripts)
-				playerController.ItemSlots = new GrabbableObject[newHotbarSize];
+			{
+				var inventory = new List<GrabbableObject>(playerController.ItemSlots);
+				// If increasing hotbar size
+				if (dHotbarSize > 0)
+				{
+                    for (int i = 0; i < Mathf.Abs(dHotbarSize); i++)
+					{
+                        inventory.Insert(mainHotbarSize, null);
+						if (playerController.currentItemSlot >= mainHotbarSize)
+							playerController.currentItemSlot++;
+					}
+				}
+				// If decreasing hotbar size
+				else
+				{
+                    for (int i = 0; i < Mathf.Abs(dHotbarSize); i++)
+					{
+                        inventory.RemoveAt(SyncManager.currentHotbarSize);
+						if (playerController.currentItemSlot >= SyncManager.currentHotbarSize)
+                            playerController.currentItemSlot--;
+					}
+                }
+				playerController.ItemSlots = inventory.ToArray();
+			}
+
+			mainHotbarSize = SyncManager.currentHotbarSize;
         }
 
 
@@ -81,7 +120,7 @@ namespace HotbarPlus.Patches
         private static IEnumerable<CodeInstruction> PatchSwitchItemInterval(IEnumerable<CodeInstruction> instructions)
 		{
 			var codes = new List<CodeInstruction>(instructions);
-			if (!ConfigSettings.disableFasterHotbarSwapping.Value && !GeneralImprovements_Compat.Enabled)
+			if (!ConfigSettings.disableFasterHotbarSwappingConfig.Value && !GeneralImprovements_Compat.Enabled)
 			{
 				for (int i = 0; i < codes.Count; i++)
 				{
@@ -101,7 +140,7 @@ namespace HotbarPlus.Patches
         private static IEnumerable<CodeInstruction> PatchActivateItemInterval(IEnumerable<CodeInstruction> instructions)
 		{
 			var codes = new List<CodeInstruction>(instructions);
-            if (!ConfigSettings.disableFasterItemActivate.Value && !GeneralImprovements_Compat.Enabled)
+            if (!ConfigSettings.disableFasterItemActivateConfig.Value && !GeneralImprovements_Compat.Enabled)
 			{
 				for (int i = 0; i < codes.Count; i++)
 				{
@@ -121,7 +160,7 @@ namespace HotbarPlus.Patches
         private static IEnumerable<CodeInstruction> PatchDiscardItemInterval(IEnumerable<CodeInstruction> instructions)
 		{
 			var codes = new List<CodeInstruction>(instructions);
-            if (!ConfigSettings.disableFasterItemDropping.Value)
+            if (!ConfigSettings.disableFasterItemDroppingConfig.Value)
 			{
 				for (int i = 0; i < codes.Count; i++)
 				{

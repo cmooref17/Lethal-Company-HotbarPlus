@@ -20,5 +20,7 @@ namespace HotbarPlus.Input
         public static InputAction QuickHotbarSlotHotkey4 => IngameKeybinds.Instance.QuickHotbarSlotHotkey4;
         public static InputAction QuickHotbarSlotHotkey5 => IngameKeybinds.Instance.QuickHotbarSlotHotkey5;
         public static InputAction QuickHotbarSlotHotkey6 => IngameKeybinds.Instance.QuickHotbarSlotHotkey6;
+        public static InputAction QuickHotbarSlotHotkey7 => IngameKeybinds.Instance.QuickHotbarSlotHotkey7;
+        public static InputAction QuickHotbarSlotHotkey8 => IngameKeybinds.Instance.QuickHotbarSlotHotkey8;
     }
 }
