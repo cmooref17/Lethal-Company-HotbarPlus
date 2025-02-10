@@ -94,10 +94,10 @@ namespace HotbarPlus.Patches
         public static int CallGetNextItemSlot(PlayerControllerB __instance, bool forward, int index)
 		{
 			int currentItemSlot = __instance.currentItemSlot;
-			__instance.currentItemSlot = index;
+			__instance.currentItemSlot = index; // To make NextItemSlot get the next slot at this index.
 			MethodInfo method = __instance.GetType().GetMethod("NextItemSlot", BindingFlags.NonPublic | BindingFlags.Instance);
 			index = (int)method.Invoke(__instance, new object[] { forward });
-			__instance.currentItemSlot = currentItemSlot;
+            __instance.currentItemSlot = currentItemSlot; // Revert to its original item slot
 			return index;
 		}
 

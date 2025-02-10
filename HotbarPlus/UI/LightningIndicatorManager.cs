@@ -5,6 +5,7 @@ using GameNetcodeStuff;
 using HarmonyLib;
 using HotbarPlus.Config;
 using HotbarPlus.Patches;
+using System.Diagnostics.Eventing.Reader;
 
 namespace HotbarPlus.UI
 {
@@ -30,8 +31,11 @@ namespace HotbarPlus.UI
 
         [HarmonyPatch(typeof(StormyWeather), "Update")]
         [HarmonyPostfix]
-        private static void Update()
+        private static void Update(ref GrabbableObject ___targetingMetalObject)
         {
+            if (currentMetalObject && !___targetingMetalObject)
+                currentMetalObject = null;
+
             if (currentMetalObject && !ConfigSettings.disableItemStaticWarningsConfig.Value)
             {
                 if (Time.time - updateTime > 0.1f)

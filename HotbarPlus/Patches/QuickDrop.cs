@@ -35,19 +35,34 @@ namespace HotbarPlus.Patches
                 return;
 
             checkedSlots.Clear();
-            int nextIndex;
-            for (nextIndex = PlayerPatcher.CallGetNextItemSlot(__instance, true, __instance.currentItemSlot); nextIndex != __instance.currentItemSlot; nextIndex = PlayerPatcher.CallGetNextItemSlot(__instance, true, nextIndex))
+            int nextIndex = -1;
+            float currentPriority = 0;
+            for (int i = PlayerPatcher.CallGetNextItemSlot(__instance, true, __instance.currentItemSlot); i != __instance.currentItemSlot; i = PlayerPatcher.CallGetNextItemSlot(__instance, true, i))
             {
-                if (checkedSlots.Contains(nextIndex))
+                if (checkedSlots.Contains(i))
                     break;
 
-                checkedSlots.Add(nextIndex);
-                GrabbableObject grabbable = __instance.ItemSlots[nextIndex]; ;
+                checkedSlots.Add(i);
+                GrabbableObject grabbable = __instance.ItemSlots[i];
                 if (grabbable != null)
-                    break;
+                {
+                    float priority = 0;
+                    if (grabbable.itemProperties.isScrap)
+                    {
+                        priority++;
+                        if (!grabbable.itemProperties.isDefensiveWeapon)
+                            priority++;
+                    }
+                    priority = (priority * 100000.0f) + grabbable.itemProperties.weight;
+                    if (priority > currentPriority)
+                    {
+                        currentPriority = priority;
+                        nextIndex = i;
+                    }
+                }
             }
 
-            if (nextIndex != __instance.currentItemSlot && nextIndex >= 0 && nextIndex < __instance.ItemSlots.Length)
+            if (nextIndex >= 0 && nextIndex < __instance.ItemSlots.Length && nextIndex != __instance.currentItemSlot)
             {
                 Plugin.Log("On discard item. Auto swapping to held item at slot: " + nextIndex + ". Prev slot: " + __instance.currentItemSlot);
                 droppingItem = true;
