@@ -14,7 +14,7 @@ namespace HotbarPlus.UI
         private static Color warningIconColorHidden = new Color(1, 1, 1, 0);
         private static float iconScale = 0.85f;
 
-        private static GameObject currentMetalObject;
+        //private static GameObject currentMetalObject;
         private static Image currentWarningIcon = null;
         private static float timeSetWarning = 0;
         private static float updateTime = 0;
@@ -31,12 +31,9 @@ namespace HotbarPlus.UI
 
         [HarmonyPatch(typeof(StormyWeather), "Update")]
         [HarmonyPostfix]
-        private static void Update(ref GrabbableObject ___targetingMetalObject)
+        private static void Update(ref GameObject ___setStaticToObject, ref GrabbableObject ___setStaticGrabbableObject)
         {
-            if (currentMetalObject && !___targetingMetalObject)
-                currentMetalObject = null;
-
-            if (currentMetalObject && !ConfigSettings.disableItemStaticWarningsConfig.Value)
+            if (!ConfigSettings.disableItemStaticWarningsConfig.Value && ___setStaticToObject && ___setStaticGrabbableObject && ___setStaticGrabbableObject.playerHeldBy == StartOfRound.Instance.localPlayerController)
             {
                 if (Time.time - updateTime > 0.1f)
                 {
@@ -45,7 +42,7 @@ namespace HotbarPlus.UI
                     for (int i = 0; i < StartOfRound.Instance.localPlayerController.ItemSlots.Length; i++)
                     {
                         var itemObject = StartOfRound.Instance.localPlayerController.ItemSlots[i]?.gameObject;
-                        if (currentMetalObject == itemObject)
+                        if (___setStaticToObject == itemObject)
                         {
                             Image itemSlotFrame = HUDManager.Instance.itemSlotIconFrames[i];
                             warningIcon = itemSlotFrame.transform.Find("LightningWarningIcon")?.GetComponent<Image>();
@@ -89,6 +86,7 @@ namespace HotbarPlus.UI
         }
 
 
+        /*
         [HarmonyPatch(typeof(StormyWeather), "SetStaticElectricityWarning")]
         [HarmonyPrefix]
         private static void OnSetStaticToObject(NetworkObject warningObject, float particleTime)
@@ -102,10 +100,15 @@ namespace HotbarPlus.UI
         private static void OnLightningStrike(Vector3 strikePosition, bool useTargetedObject)
         {
             if (useTargetedObject)
+            {
                 currentMetalObject = null;
+                if (currentWarningIcon)
+                    ClearCurrentWarningIcon();
+            }
         }
 
 
+        // To hide warning icon immediately, instead on 0.1 second intervals. This will line up with dropped item icons disappearing.
         [HarmonyPatch(typeof(PlayerControllerB), "SetObjectAsNoLongerHeld")]
         [HarmonyPrefix]
         private static void OnDiscardItem(bool droppedInElevator, bool droppedInShipRoom, Vector3 targetFloorPosition, GrabbableObject dropObject, PlayerControllerB __instance)
@@ -113,6 +116,7 @@ namespace HotbarPlus.UI
             if (currentWarningIcon && dropObject == currentMetalObject && __instance == StartOfRound.Instance.localPlayerController)
                 ClearCurrentWarningIcon();
         }
+        */
 
 
         private static void SetCurrentWarningIcon(Image warningIcon)
@@ -125,7 +129,6 @@ namespace HotbarPlus.UI
                 currentWarningIcon = warningIcon;
                 warningIcon.color = new Color(1, 1, 1, 0);
                 timeSetWarning = Time.time;
-                //Plugin.Log("Setting current lightning warning icon to slot: " + warningIcon.transform.parent.name);
             }
         }
 
@@ -136,7 +139,6 @@ namespace HotbarPlus.UI
             {
                 currentWarningIcon.color = warningIconColorHidden;
                 currentWarningIcon = null;
-                //Plugin.Log("Clearing current lightning warning icon.");
             }
         }
     }
